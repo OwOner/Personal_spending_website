@@ -6,8 +6,10 @@
     <title>Spooky Spending Tracker</title>
     <!-- 
       VERCEL DEPLOYMENT TROUBLESHOOTING:
-      If you see a 404 error, it is because Vercel is looking at the root of your repo.
-      Go to Vercel Dashboard > Settings > General > Root Directory and set it to 'spooky-ledger'.
+      If Vercel says "spooky-ledger does not exist", do the following:
+      1. Open your GitHub repository URL in a browser.
+      2. Look at the files. If you see 'index.html' immediately, set Root Directory to '.' (or leave it blank).
+      3. If you see a folder, type that EXACT folder name into Vercel's Root Directory setting.
     -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
