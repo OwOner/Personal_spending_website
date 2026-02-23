@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Spooky Spending Tracker</title>
+    <!-- VERCEL DEPLOYMENT NOTE: Ensure this file is named exactly 'index.html' and sits in the root of your GitHub repo -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
@@ -183,22 +184,17 @@
     <div id="toast" class="fixed bottom-12 left-1/2 -translate-x-1/2 bg-white text-black text-[10px] uppercase tracking-[0.2em] px-10 py-4 hidden z-50 font-black shadow-2xl rounded-full"></div>
 
     <script>
-        // REPLACE THESE WITH YOUR SUPABASE PROJECT DETAILS
-       const SUPABASE_URL = 'https://owmaxdpnbczknbhnutqa.supabase.co';
+        const SUPABASE_URL = 'https://owmaxdpnbczknbhnutqa.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_F9BD1XaLBh_ULgAwQCUVKw_TOCApWq7';
         
-        // Use a different variable name than 'supabase' to avoid conflict with the library
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         let balance = 0;
         let transactions = [];
 
-        window.onload = () => {
-            fetchData();
-        };
+        window.onload = () => { fetchData(); };
 
         async function fetchData() {
-            // Fetch Transactions
             const { data, error } = await supabaseClient
                 .from('transactions')
                 .select('*')
@@ -211,12 +207,9 @@
             }
 
             transactions = data || [];
-            
-            // Calculate Balance locally from transactions
             balance = transactions.reduce((acc, tx) => {
                 return tx.type === 'income' ? acc + tx.amount : acc - tx.amount;
             }, 0);
-
             updateUI();
         }
 
@@ -225,7 +218,6 @@
             const list = document.getElementById('historyList');
             const emptyState = document.getElementById('emptyState');
             const catStats = document.getElementById('categoryStats');
-            
             list.innerHTML = '';
             
             if (transactions.length === 0) {
@@ -254,31 +246,25 @@
                     list.appendChild(item);
                 });
 
-                // Stats Logic
                 const stats = {};
                 const expensesOnly = transactions.filter(t => t.type === 'expense');
-                expensesOnly.forEach(t => {
-                    stats[t.category] = (stats[t.category] || 0) + t.amount;
-                });
-
+                expensesOnly.forEach(t => { stats[t.category] = (stats[t.category] || 0) + t.amount; });
                 const totalExp = expensesOnly.reduce((a, b) => a + b.amount, 0);
 
                 if (totalExp === 0) {
                     catStats.innerHTML = `<p class="text-xs text-zinc-600 italic">No expense analysis available.</p>`;
                 } else {
-                    catStats.innerHTML = Object.entries(stats)
-                        .sort((a,b) => b[1] - a[1])
-                        .map(([cat, amt]) => `
-                            <div class="space-y-3">
-                                <div class="flex justify-between items-end">
-                                    <span class="text-[10px] uppercase tracking-widest text-zinc-400 font-bold">${cat}</span>
-                                    <span class="text-xs font-mono text-orange-500">₱${amt.toLocaleString()}</span>
-                                </div>
-                                <div class="w-full bg-zinc-900 h-[2px] rounded-full overflow-hidden">
-                                    <div class="bg-gradient-to-r from-red-800 to-orange-600 h-full" style="width: ${(amt/totalExp)*100}%"></div>
-                                </div>
+                    catStats.innerHTML = Object.entries(stats).sort((a,b) => b[1] - a[1]).map(([cat, amt]) => `
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-end">
+                                <span class="text-[10px] uppercase tracking-widest text-zinc-400 font-bold">${cat}</span>
+                                <span class="text-xs font-mono text-orange-500">₱${amt.toLocaleString()}</span>
                             </div>
-                        `).join('');
+                            <div class="w-full bg-zinc-900 h-[2px] rounded-full overflow-hidden">
+                                <div class="bg-gradient-to-r from-red-800 to-orange-600 h-full" style="width: ${(amt/totalExp)*100}%"></div>
+                            </div>
+                        </div>
+                    `).join('');
                 }
             }
         }
@@ -287,13 +273,8 @@
             const input = document.getElementById('incomeAmount');
             const amount = parseFloat(input.value);
             if (!amount || amount <= 0) return notify("Null value detected.");
-
-            const { error } = await supabaseClient
-                .from('transactions')
-                .insert([{ type: 'income', category: 'Credit Allocation', amount, note: 'Vault infusion' }]);
-
+            const { error } = await supabaseClient.from('transactions').insert([{ type: 'income', category: 'Credit Allocation', amount, note: 'Vault infusion' }]);
             if (error) return notify("Auth Error: Persistence Failed");
-            
             input.value = '';
             fetchData();
             notify("Liquidity recalibrated.");
@@ -304,21 +285,10 @@
             const catIn = document.getElementById('expCategory');
             const noteIn = document.getElementById('expNote');
             const amount = parseFloat(amtIn.value);
-            
             if (!amount || amount <= 0) return notify("Auth denied: Invalid value.");
             if (amount > balance) return notify("Auth denied: Insufficient liquidity.");
-
-            const { error } = await supabaseClient
-                .from('transactions')
-                .insert([{ 
-                    type: 'expense', 
-                    category: catIn.options[catIn.selectedIndex].text, 
-                    amount, 
-                    note: noteIn.value 
-                }]);
-
+            const { error } = await supabaseClient.from('transactions').insert([{ type: 'expense', category: catIn.options[catIn.selectedIndex].text, amount, note: noteIn.value }]);
             if (error) return notify("Auth Error: Transmission failed.");
-
             amtIn.value = '';
             noteIn.value = '';
             fetchData();
